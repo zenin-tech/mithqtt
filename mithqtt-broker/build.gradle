@@ -11,6 +11,8 @@ dependencies {
     compile project(':mithqtt-api')
     compile project(':mithqtt-storage-redis')
 
+    compile project(':mithqtt-storage-mongo')
+
     // authenticator
     runtime project(':mithqtt-authenticator-dummy')
 
