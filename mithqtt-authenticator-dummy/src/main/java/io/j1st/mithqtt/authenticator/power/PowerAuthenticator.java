@@ -25,6 +25,8 @@ public class PowerAuthenticator implements Authenticator {
     public void init(AbstractConfiguration config) {
         this.allowDollar = config.getBoolean("allowDollar", true);
         this.deniedTopic = config.getString("deniedTopic", null);
+        mongoStorage = new MongoStorage();
+        mongoStorage.init(config);
     }
 
     @Override
