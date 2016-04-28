@@ -96,6 +96,18 @@ public class MongoStorage {
                 .find(eq("_id", new ObjectId(id))).first() != null ;
     }
 
+
+    /**
+     * 判断Agent是否存在
+     *
+     * @param userName 采集器Id
+     * @return 采集器 or Null
+     */
+    public boolean isAgentAuth(String userName , String password) {
+        return this.database.getCollection("agents")
+                .find(and(eq("_id", new ObjectId(userName)),eq("token", password))).first() != null ;
+    }
+
     /**
      * 获取 产品 是否被激活
      * 激活的定义为：旗下采集器至少有一个被激活

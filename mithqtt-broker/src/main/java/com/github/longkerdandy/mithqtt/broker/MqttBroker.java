@@ -12,6 +12,7 @@ import com.github.longkerdandy.mithqtt.api.metrics.MetricsService;
 import com.github.longkerdandy.mithqtt.broker.session.SessionRegistry;
 import com.github.longkerdandy.mithqtt.broker.util.Validator;
 import com.lambdaworks.redis.ValueScanCursor;
+import io.j1st.power.storage.mongo.MongoStorage;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.epoll.EpollEventLoopGroup;
@@ -52,18 +53,21 @@ public class MqttBroker {
         PropertiesConfiguration communicatorConfig;
         PropertiesConfiguration authenticatorConfig;
         PropertiesConfiguration metricsConfig;
+        PropertiesConfiguration mongodbConfig;
         if (args.length >= 5) {
             brokerConfig = new PropertiesConfiguration(args[0]);
             redisConfig = new PropertiesConfiguration(args[1]);
             communicatorConfig = new PropertiesConfiguration(args[2]);
             authenticatorConfig = new PropertiesConfiguration(args[3]);
             metricsConfig = new PropertiesConfiguration(args[4]);
+            mongodbConfig = new PropertiesConfiguration(args[5]);
         } else {
             brokerConfig = new PropertiesConfiguration("config/broker.properties");
             redisConfig = new PropertiesConfiguration("config/redis.properties");
             communicatorConfig = new PropertiesConfiguration("config/communicator.properties");
             authenticatorConfig = new PropertiesConfiguration("config/authenticator.properties");
             metricsConfig = new PropertiesConfiguration("config/metrics.properties");
+            mongodbConfig = new PropertiesConfiguration("config/mongo.properties");
         }
 
         final String brokerId = brokerConfig.getString("broker.id");
@@ -93,13 +97,14 @@ public class MqttBroker {
         // authenticator
         logger.debug("Initializing authenticator...");
         Authenticator authenticator = (Authenticator) Class.forName(authenticatorConfig.getString("authenticator.class")).newInstance();
-        authenticator.init(authenticatorConfig);
+        authenticator.init(mongodbConfig);
 
         // metrics
         logger.debug("Initializing metrics ...");
         final boolean metricsEnabled = metricsConfig.getBoolean("metrics.enabled");
         MetricsService metrics = metricsEnabled ? (MetricsService) Class.forName(metricsConfig.getString("metrics.class")).newInstance() : null;
         if (metricsEnabled) metrics.init(metricsConfig);
+
 
         // broker
         final int keepAlive = brokerConfig.getInt("mqtt.keepalive.default");
