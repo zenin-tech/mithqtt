@@ -8,9 +8,9 @@ serverId: 1
 # These are regexp validator for MQTT packet field
 # Fields will validate against the regexp whenever a related request is received
 # Leave empty to skip the validation
-clientIdValidator = ^[ -~]+$
-topicNameValidator = ^[ -~]+$
-topicFilterValidator = ^[ -~]+$
+clientIdValidator : ^[ -~]+$
+topicNameValidator : ^[ -~]+$
+topicFilterValidator : ^[ -~]+$
 
 
 # DropWizard

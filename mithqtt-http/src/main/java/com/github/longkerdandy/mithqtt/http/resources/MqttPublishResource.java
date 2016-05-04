@@ -50,7 +50,7 @@ public class MqttPublishResource extends AbstractResource {
     public ResultEntity<Boolean> publish(@PathParam("clientId") String clientId, @Auth UserPrincipal user, @QueryParam("protocol") @DefaultValue("4") byte protocol,
                                          @QueryParam("dup") @DefaultValue("false") boolean dup, @QueryParam("qos") @DefaultValue("0") int qos,
                                          @QueryParam("topicName") String topicName, @QueryParam("packetId") @DefaultValue("0") int packetId,
-                                         String body) throws UnsupportedEncodingException {
+                                          String body) throws UnsupportedEncodingException {
         String userName = user.getName();
         MqttVersion version = MqttVersion.fromProtocolLevel(protocol);
         byte[] payload = body == null ? null : body.getBytes("ISO-8859-1");
@@ -147,4 +147,5 @@ public class MqttPublishResource extends AbstractResource {
             throw new AuthorizeException(new ErrorEntity(ErrorCode.UNAUTHORIZED));
         }
     }
+
 }

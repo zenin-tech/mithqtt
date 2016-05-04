@@ -33,7 +33,11 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.TrustManagerFactory;
 import java.io.File;
+import java.io.FileInputStream;
+import java.security.KeyStore;
 
 /**
  * MQTT Bridge
@@ -105,14 +109,14 @@ public class MqttBroker {
         MetricsService metrics = metricsEnabled ? (MetricsService) Class.forName(metricsConfig.getString("metrics.class")).newInstance() : null;
         if (metricsEnabled) metrics.init(metricsConfig);
 
-
         // broker
         final int keepAlive = brokerConfig.getInt("mqtt.keepalive.default");
         final int keepAliveMax = brokerConfig.getInt("mqtt.keepalive.max");
         final boolean ssl = brokerConfig.getBoolean("mqtt.ssl.enabled");
-        final SslContext sslContext = ssl ? SslContextBuilder.forServer(new File(brokerConfig.getString("mqtt.ssl.certPath")), new File(brokerConfig.getString("mqtt.ssl.keyPath")), brokerConfig.getString("mqtt.ssl.keyPassword")).build() : null;
+//        final SslContext sslContext = ssl ? SslContextBuilder.forServer(new File(brokerConfig.getString("mqtt.ssl.certPath")), new File(brokerConfig.getString("mqtt.ssl.keyPath")), brokerConfig.getString("mqtt.ssl.keyPassword")).build() : null;
         final String host = brokerConfig.getString("mqtt.host");
-        final int port = ssl ? brokerConfig.getInt("mqtt.ssl.port") : brokerConfig.getInt("mqtt.port");
+        final int port = brokerConfig.getInt("mqtt.port");
+
 
         // tcp server
         logger.debug("Initializing tcp server ...");
@@ -149,10 +153,6 @@ public class MqttBroker {
                     @Override
                     public void initChannel(SocketChannel ch) throws Exception {
                         ChannelPipeline p = ch.pipeline();
-                        // ssl
-                        if (ssl) {
-                            p.addLast("ssl", sslContext.newHandler(ch.alloc()));
-                        }
                         // idle
                         p.addFirst("idleHandler", new IdleStateHandler(0, 0, keepAlive));
                         // metrics
@@ -176,11 +176,65 @@ public class MqttBroker {
         // Bind and start to accept incoming connections.
         ChannelFuture f = b.bind(host, port).sync();
 
+
+        /**
+         * 打开SSL的端口监听
+         */
+        if(ssl) {
+
+            String password = brokerConfig.getString("mqtt.ssl.password");
+            KeyStore ks = KeyStore.getInstance("JKS");
+            ks.load(new FileInputStream(new File(brokerConfig.getString("mqtt.ssl.certPath"))), password.toCharArray());
+
+//        TrustManagerFactory tmFactory = TrustManagerFactory.getInstance("SunX509");
+//        tmFactory.init(ks);
+
+            KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+            kmf.init(ks, password.toCharArray());
+
+            final SslContext sslContext = ssl ? SslContextBuilder.forServer(kmf).build() : null;
+            final int sslport = ssl ? brokerConfig.getInt("mqtt.ssl.port") : 8883;
+            ServerBootstrap sslb = new ServerBootstrap();
+            sslb.group(bossGroup, workerGroup)
+                    .channel(brokerConfig.getBoolean("netty.useEpoll") ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
+                    .handler(new LoggingHandler(LogLevel.INFO))
+                    .childHandler(new ChannelInitializer<SocketChannel>() {
+                        @Override
+                        public void initChannel(SocketChannel ch) throws Exception {
+                            ChannelPipeline p = ch.pipeline();
+                            // ssl
+                            p.addLast("ssl", sslContext.newHandler(ch.alloc()));
+
+                            // idle
+                            p.addFirst("idleHandler", new IdleStateHandler(0, 0, keepAlive));
+                            // metrics
+                            if (metricsEnabled) {
+                                p.addLast("bytesMetrics", new BytesMetricsHandler(metrics, brokerId));
+                            }
+                            // mqtt encoder & decoder
+                            p.addLast("encoder", new MqttEncoder());
+                            p.addLast("decoder", new MqttDecoder());
+                            // metrics
+                            if (metricsEnabled) {
+                                p.addLast("msgMetrics", new MessageMetricsHandler(metrics, brokerId));
+                            }
+                            // logic handler
+                            p.addLast(handlerGroup, "logicHandler", new SyncRedisHandler(authenticator, communicator, redis, registry, validator, brokerId, keepAlive, keepAliveMax));
+                        }
+                    })
+                    .option(ChannelOption.SO_BACKLOG, brokerConfig.getInt("netty.soBacklog"))
+                    .childOption(ChannelOption.SO_KEEPALIVE, brokerConfig.getBoolean("netty.soKeepAlive"));
+
+            ChannelFuture sf = sslb.bind(host, sslport).sync();
+
+        }
+
         logger.info("MQTT broker is up and running.");
 
         // Wait until the server socket is closed.
         // Do this to gracefully shut down the server.
         f.channel().closeFuture().sync();
+
     }
 
     /**

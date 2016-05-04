@@ -147,6 +147,7 @@ public class MqttHttp extends Application<MqttHttpConfiguration> {
         environment.jersey().register(new MqttSubscribeResource(configuration.getServerId(), validator, redis, communicator, authenticator, metrics));
         environment.jersey().register(new MqttUnsubscribeResource(configuration.getServerId(), validator, redis, communicator, authenticator, metrics));
 
+
         // config jackson
         environment.getObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         environment.getObjectMapper().configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
