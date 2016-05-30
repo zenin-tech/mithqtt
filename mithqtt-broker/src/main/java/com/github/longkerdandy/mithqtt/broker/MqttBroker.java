@@ -186,8 +186,8 @@ public class MqttBroker {
             KeyStore ks = KeyStore.getInstance("JKS");
             ks.load(new FileInputStream(new File(brokerConfig.getString("mqtt.ssl.certPath"))), password.toCharArray());
 
-//        TrustManagerFactory tmFactory = TrustManagerFactory.getInstance("SunX509");
-//        tmFactory.init(ks);
+            TrustManagerFactory tmFactory = TrustManagerFactory.getInstance("SunX509");
+            tmFactory.init(ks);
 
             KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
             kmf.init(ks, password.toCharArray());

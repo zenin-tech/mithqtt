@@ -51,7 +51,7 @@ public class MqttPublishResource extends AbstractResource {
                                          @QueryParam("dup") @DefaultValue("false") boolean dup, @QueryParam("qos") @DefaultValue("0") int qos,
                                          @QueryParam("topicName") String topicName, @QueryParam("packetId") @DefaultValue("0") int packetId,
                                           String body) throws UnsupportedEncodingException {
-        String userName = user.getName();
+        String userName = clientId;
         MqttVersion version = MqttVersion.fromProtocolLevel(protocol);
         byte[] payload = body == null ? null : body.getBytes("ISO-8859-1");
 

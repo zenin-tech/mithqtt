@@ -14,6 +14,26 @@ topicFilterValidator : ^[ -~]+$
 
 
 # DropWizard
+logging:
+  level: INFO
+  loggers:
+      "mithqtt-http": DEBUG
+  appenders:
+    - type: console
+      threshold: ALL
+      target: stdout
+      timeZone: Asia/Shanghai
+      logFormat: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %c{20} - %msg%n %ex{full}"
+    - type: file
+      currentLogFilename: log/mqhttp.log
+      threshold: ALL
+      archive: true
+      archivedLogFilenamePattern: /log/http-%d.log
+      archivedFileCount: 5
+      timeZone: Asia/Shanghai
+      logFormat: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %c{20} - %msg%n %ex{full}"
+
+
 
 server:
   type: simple
@@ -21,4 +41,4 @@ server:
   adminContextPath: /admin
   connector:
     type: http
-    port: 8080
+    port: 8081

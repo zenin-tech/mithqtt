@@ -5,6 +5,7 @@ import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoDatabase;
 import io.j1st.power.storage.mongo.entity.Permission;
+import io.j1st.power.storage.mongo.entity.User;
 import org.apache.commons.configuration.AbstractConfiguration;
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -13,6 +14,7 @@ import java.util.*;
 import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.exists;
+import static com.mongodb.client.model.Projections.exclude;
 import static com.mongodb.client.model.Projections.include;
 
 
@@ -106,6 +108,22 @@ public class MongoStorage {
     public boolean isAgentAuth(String userName , String password) {
         return this.database.getCollection("agents")
                 .find(and(eq("_id", new ObjectId(userName)),eq("token", password))).first() != null ;
+    }
+
+
+    /**
+     * 获取 用户信息，根据 Token
+     *
+     * @param token Token
+     * @return 用户信息 or Null
+     */
+    public String getUserByToken(String token) {
+        Document d = this.database.getCollection("users")
+                .find(eq("token", token))
+                .projection(exclude("password"))
+                .first();
+        if (d == null) return null;
+        return d.getObjectId("_id").toString();
     }
 
     /**

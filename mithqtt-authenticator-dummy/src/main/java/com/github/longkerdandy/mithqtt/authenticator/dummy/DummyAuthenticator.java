@@ -54,6 +54,6 @@ public class DummyAuthenticator implements Authenticator {
 
     @Override
     public String oauth(String credentials) {
-        return "dummy";
+        return credentials;
     }
 }

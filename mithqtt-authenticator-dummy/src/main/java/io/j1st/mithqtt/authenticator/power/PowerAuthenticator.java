@@ -58,12 +58,12 @@ public class PowerAuthenticator implements Authenticator {
         if (!this.allowDollar && topicName.startsWith("$")) return AuthorizeResult.FORBIDDEN;
         if (topicName.equals(this.deniedTopic)) return AuthorizeResult.FORBIDDEN;
         //判断topic是否包括自己的clientId
-        if(topicName.indexOf(clientId) == -1){
-            return AuthorizeResult.FORBIDDEN;
-        }
-        if(!topicName.endsWith("upstream")){
-            return AuthorizeResult.FORBIDDEN;
-        }
+//        if(topicName.indexOf(clientId) == -1){
+//            return AuthorizeResult.FORBIDDEN;
+//        }
+//        if(!topicName.endsWith("upstream")){
+//            return AuthorizeResult.FORBIDDEN;
+//        }
         return AuthorizeResult.OK;
     }
 
@@ -80,6 +80,6 @@ public class PowerAuthenticator implements Authenticator {
 
     @Override
     public String oauth(String credentials) {
-        return "dummy";
+        return mongoStorage.getUserByToken(credentials);
     }
 }
