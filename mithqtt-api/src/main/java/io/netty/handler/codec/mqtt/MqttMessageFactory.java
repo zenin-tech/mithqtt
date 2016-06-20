@@ -35,6 +35,7 @@ public final class MqttMessageFactory {
                         (MqttConnectVariableHeader) variableHeader,
                         (MqttConnectPayload) payload);
 
+
             case CONNACK:
                 return new MqttConnAckMessage(mqttFixedHeader, (MqttConnAckVariableHeader) variableHeader);
 

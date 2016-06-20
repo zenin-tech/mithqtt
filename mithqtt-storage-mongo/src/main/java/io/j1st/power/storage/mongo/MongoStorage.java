@@ -80,6 +80,9 @@ public class MongoStorage {
      * @return True 权限满足
      */
     public boolean isAgentdByUser(String id, Permission permission) {
+        if(!ObjectId.isValid(id)){
+            return false;
+        }
         return this.database.getCollection("agents")
                 .find(and(eq("_id", new ObjectId(id)), eq("permissions", new Document("$elemMatch", new Document()
                         .append("user_id", permission.getUserId())))))
@@ -94,6 +97,9 @@ public class MongoStorage {
      * @return 采集器 or Null
      */
     public boolean isAgentExists(String id) {
+        if(!ObjectId.isValid(id)){
+            return false;
+        }
         return this.database.getCollection("agents")
                 .find(eq("_id", new ObjectId(id))).first() != null ;
     }
@@ -106,6 +112,9 @@ public class MongoStorage {
      * @return 采集器 or Null
      */
     public boolean isAgentAuth(String userName , String password) {
+        if(!ObjectId.isValid(userName)){
+            return false;
+        }
         return this.database.getCollection("agents")
                 .find(and(eq("_id", new ObjectId(userName)),eq("token", password))).first() != null ;
     }
@@ -134,6 +143,9 @@ public class MongoStorage {
      * @return True 被激活
      */
     public boolean isProductActivated(String productId) {
+        if(!ObjectId.isValid(productId)){
+            return false;
+        }
         return this.database.getCollection("agents")
                 .find(and(eq("product_id", new ObjectId(productId)), exists("activated_at", true)))
                 .projection(include("_id"))
