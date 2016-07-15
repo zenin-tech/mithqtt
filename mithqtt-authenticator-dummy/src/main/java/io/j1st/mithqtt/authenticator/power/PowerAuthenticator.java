@@ -58,12 +58,12 @@ public class PowerAuthenticator implements Authenticator {
         if (!this.allowDollar && topicName.startsWith("$")) return AuthorizeResult.FORBIDDEN;
         if (topicName.equals(this.deniedTopic)) return AuthorizeResult.FORBIDDEN;
         //判断topic是否包括自己的clientId
-//        if(topicName.indexOf(clientId) == -1){
-//            return AuthorizeResult.FORBIDDEN;
-//        }
-//        if(!topicName.endsWith("upstream")){
-//            return AuthorizeResult.FORBIDDEN;
-//        }
+        if(topicName.indexOf(clientId) == -1){
+            return AuthorizeResult.FORBIDDEN;
+        }
+        if(!topicName.endsWith("upstream")){
+            return AuthorizeResult.FORBIDDEN;
+        }
         return AuthorizeResult.OK;
     }
 
@@ -73,6 +73,7 @@ public class PowerAuthenticator implements Authenticator {
         requestSubscriptions.forEach(subscription -> {
             if (!this.allowDollar && subscription.topic().startsWith("$")) r.add(MqttGrantedQoS.FAILURE);
             if (subscription.topic().equals(this.deniedTopic)) r.add(MqttGrantedQoS.FAILURE);
+            if (!subscription.topic().endsWith("downstream")) r.add(MqttGrantedQoS.FAILURE);
             r.add(MqttGrantedQoS.valueOf(subscription.requestedQos().value()));
         });
         return r;
