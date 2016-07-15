@@ -74,6 +74,7 @@ public class PowerAuthenticator implements Authenticator {
             if (!this.allowDollar && subscription.topic().startsWith("$")) r.add(MqttGrantedQoS.FAILURE);
             if (subscription.topic().equals(this.deniedTopic)) r.add(MqttGrantedQoS.FAILURE);
             if (!subscription.topic().endsWith("downstream")) r.add(MqttGrantedQoS.FAILURE);
+            if (subscription.topic().indexOf(clientId) == -1) r.add(MqttGrantedQoS.FAILURE);
             r.add(MqttGrantedQoS.valueOf(subscription.requestedQos().value()));
         });
         return r;
