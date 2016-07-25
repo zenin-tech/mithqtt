@@ -4,6 +4,7 @@ import com.mongodb.MongoClient;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoDatabase;
+import io.j1st.power.storage.mongo.entity.Agent;
 import io.j1st.power.storage.mongo.entity.Permission;
 import io.j1st.power.storage.mongo.entity.User;
 import org.apache.commons.configuration.AbstractConfiguration;
@@ -151,5 +152,36 @@ public class MongoStorage {
                 .projection(include("_id"))
                 .first() != null;
 
+    }
+
+
+    /**
+     * 获取 产品 是否被激活
+     * 激活的定义为：旗下采集器至少有一个被激活
+     *
+     * @param agentId
+     * @return True 被激活
+     */
+    public Integer getProductStatusByAgentId(String agentId) {
+        Integer status = null;
+        if(!ObjectId.isValid(agentId)){
+            return null;
+        }
+        Document agentDocument = this.database.getCollection("agents")
+                .find(eq("_id", new ObjectId(agentId)))
+                .first();
+        if(agentDocument != null) {
+            ObjectId productId = agentDocument.getObjectId("product_id");
+            if(productId != null) {
+                Document productDocument = this.database.getCollection("products")
+                        .find(eq("_id",productId))
+                        .first();
+                if(productDocument != null) {
+                    status = productDocument.getInteger("status");
+                }
+            }
+        }
+
+        return status;
     }
 }

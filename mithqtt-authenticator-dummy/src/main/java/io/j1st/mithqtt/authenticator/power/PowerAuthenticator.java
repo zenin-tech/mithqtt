@@ -3,6 +3,7 @@ package io.j1st.mithqtt.authenticator.power;
 import com.github.longkerdandy.mithqtt.api.auth.Authenticator;
 import com.github.longkerdandy.mithqtt.api.auth.AuthorizeResult;
 import io.j1st.power.storage.mongo.MongoStorage;
+import io.j1st.power.storage.mongo.entity.ProductStatus;
 import io.netty.handler.codec.mqtt.MqttGrantedQoS;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import org.apache.commons.configuration.AbstractConfiguration;
@@ -50,6 +51,11 @@ public class PowerAuthenticator implements Authenticator {
         if(!mongoStorage.isAgentAuth(userName, password)) {
             return AuthorizeResult.FORBIDDEN;
         }
+        //验证product状态是否正常
+        Integer status = this.mongoStorage.getProductStatusByAgentId(clientId);
+        if(status == null || !status.equals(ProductStatus.SERVICE.value())){
+            return AuthorizeResult.FORBIDDEN;
+        }
         return AuthorizeResult.OK;
     }
 
@@ -62,6 +68,11 @@ public class PowerAuthenticator implements Authenticator {
             return AuthorizeResult.FORBIDDEN;
         }
         if(!topicName.endsWith("upstream")){
+            return AuthorizeResult.FORBIDDEN;
+        }
+        //验证product状态是否正常
+        Integer status = this.mongoStorage.getProductStatusByAgentId(clientId);
+        if(status == null || !status.equals(ProductStatus.SERVICE.value())){
             return AuthorizeResult.FORBIDDEN;
         }
         return AuthorizeResult.OK;
