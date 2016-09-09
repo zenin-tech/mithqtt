@@ -125,6 +125,19 @@ public class InternalMessage<T> implements Serializable {
         return msg;
     }
 
+    public static InternalMessage<Publish> fromMqttMessage(String topic,MqttVersion version, String clientId, String userName,
+                                                           String brokerId,
+                                                           MqttPublishMessage mqtt) {
+        InternalMessage<Publish> msg = fromMqttMessage(version, clientId, userName, brokerId, mqtt.fixedHeader());
+        // forge bytes payload
+        ByteBuf buf = mqtt.payload().duplicate();
+        byte[] bytes = new byte[buf.readableBytes()];
+        buf.readBytes(bytes);
+        msg.payload = new Publish(topic, mqtt.variableHeader().packetId(), bytes);
+        return msg;
+    }
+
+
     public static InternalMessage<Disconnect> fromMqttMessage(MqttVersion version, String clientId, String userName,
                                                               String brokerId,
                                                               boolean cleanSession, boolean cleanExit) {
