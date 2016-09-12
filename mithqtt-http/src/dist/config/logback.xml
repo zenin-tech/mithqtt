@@ -7,7 +7,7 @@
     </appender>
 
     <appender name="File" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>log/http.log</file>
+        <file>log/mqhttp.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- daily rollover -->
             <fileNamePattern>log/archived/http.%d{yyyy-MM-dd}.log</fileNamePattern>
@@ -49,6 +49,12 @@
 
     <!-- Netty -->
     <logger name="io.netty" level="INFO" additivity="false">
+        <appender-ref ref="Console"/>
+        <appender-ref ref="File"/>
+    </logger>
+
+    <!-- Mithqtt -->
+    <logger name="com.github.longkerdandy" level="DEBUG" additivity="false">
         <appender-ref ref="Console"/>
         <appender-ref ref="File"/>
     </logger>

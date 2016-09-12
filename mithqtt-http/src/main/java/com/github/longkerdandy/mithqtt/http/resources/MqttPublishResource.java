@@ -45,12 +45,15 @@ public class MqttPublishResource extends AbstractResource {
         super(serverId, validator, redis, communicator, authenticator, metrics);
     }
 
-    @PermitAll
+    //@PermitAll
     @POST
     public ResultEntity<Boolean> publish(@PathParam("clientId") String clientId, @Auth UserPrincipal user, @QueryParam("protocol") @DefaultValue("4") byte protocol,
                                          @QueryParam("dup") @DefaultValue("false") boolean dup, @QueryParam("qos") @DefaultValue("0") int qos,
                                          @QueryParam("topicName") String topicName, @QueryParam("packetId") @DefaultValue("0") int packetId,
                                           String body) throws UnsupportedEncodingException {
+
+       logger.info("clientId {} publish message to rabbitmq ,topic = {}",clientId,topicName);
+
         String userName = clientId;
         MqttVersion version = MqttVersion.fromProtocolLevel(protocol);
         byte[] payload = body == null ? null : body.getBytes("ISO-8859-1");
@@ -125,6 +128,7 @@ public class MqttPublishResource extends AbstractResource {
                     logger.trace("Communicator sending: Send PUBLISH message to broker {} for client {} subscription", bid, cid);
                     d = true;
                     this.communicator.sendToBroker(bid, m);
+                    logger.info("clientId {} publish message to broker success . message topic = {}",clientId,topicName);
                 }
 
                 // In the QoS 1 delivery protocol, the Sender
@@ -142,8 +146,10 @@ public class MqttPublishResource extends AbstractResource {
             // Pass message to 3rd party application
             this.communicator.sendToApplication(msg);
 
+            logger.info("clientId {} publish message to rabbitmq success . message topic = {}",clientId,topicName);
             return new ResultEntity<>(true);
         } else {
+            logger.info("clientId {} publish message to rabbitmq  Authorize fail publish out . message topic = {}",clientId,topicName);
             throw new AuthorizeException(new ErrorEntity(ErrorCode.UNAUTHORIZED));
         }
     }
