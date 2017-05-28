@@ -3,18 +3,18 @@ package io.j1st.power.storage.mongo;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoDatabase;
-import io.j1st.power.storage.mongo.entity.Agent;
 import io.j1st.power.storage.mongo.entity.Permission;
-import io.j1st.power.storage.mongo.entity.User;
 import org.apache.commons.configuration.AbstractConfiguration;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 import static com.mongodb.client.model.Filters.*;
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.exists;
 import static com.mongodb.client.model.Projections.exclude;
 import static com.mongodb.client.model.Projections.include;
 
@@ -81,7 +81,7 @@ public class MongoStorage {
      * @return True 权限满足
      */
     public boolean isAgentdByUser(String id, Permission permission) {
-        if(!ObjectId.isValid(id)){
+        if (!ObjectId.isValid(id)) {
             return false;
         }
         return this.database.getCollection("agents")
@@ -98,11 +98,11 @@ public class MongoStorage {
      * @return 采集器 or Null
      */
     public boolean isAgentExists(String id) {
-        if(!ObjectId.isValid(id)){
+        if (!ObjectId.isValid(id)) {
             return false;
         }
         return this.database.getCollection("agents")
-                .find(eq("_id", new ObjectId(id))).first() != null ;
+                .find(eq("_id", new ObjectId(id))).first() != null;
     }
 
 
@@ -112,12 +112,12 @@ public class MongoStorage {
      * @param userName 采集器Id
      * @return 采集器 or Null
      */
-    public boolean isAgentAuth(String userName , String password) {
-        if(!ObjectId.isValid(userName)){
+    public boolean isAgentAuth(String userName, String password) {
+        if (!ObjectId.isValid(userName)) {
             return false;
         }
         return this.database.getCollection("agents")
-                .find(and(eq("_id", new ObjectId(userName)),eq("token", password))).first() != null ;
+                .find(and(eq("_id", new ObjectId(userName)), eq("token", password))).first() != null;
     }
 
 
@@ -144,7 +144,7 @@ public class MongoStorage {
      * @return True 被激活
      */
     public boolean isProductActivated(String productId) {
-        if(!ObjectId.isValid(productId)){
+        if (!ObjectId.isValid(productId)) {
             return false;
         }
         return this.database.getCollection("agents")
@@ -154,6 +154,19 @@ public class MongoStorage {
 
     }
 
+    /**
+     * 判断agent是否可连接
+     *
+     * @param agentId agent id
+     * @param status  status
+     * @return is exist
+     */
+    public boolean isDisableAgent(ObjectId agentId, int status) {
+        return this.database.getCollection("agents")
+                .find(and(eq("_id", agentId), eq("status", status)))
+                .first() != null;
+
+    }
 
     /**
      * 获取 产品 是否被激活
@@ -164,19 +177,19 @@ public class MongoStorage {
      */
     public Integer getProductStatusByAgentId(String agentId) {
         Integer status = null;
-        if(!ObjectId.isValid(agentId)){
+        if (!ObjectId.isValid(agentId)) {
             return null;
         }
         Document agentDocument = this.database.getCollection("agents")
                 .find(eq("_id", new ObjectId(agentId)))
                 .first();
-        if(agentDocument != null) {
+        if (agentDocument != null) {
             ObjectId productId = agentDocument.getObjectId("product_id");
-            if(productId != null) {
+            if (productId != null) {
                 Document productDocument = this.database.getCollection("products")
-                        .find(eq("_id",productId))
+                        .find(eq("_id", productId))
                         .first();
-                if(productDocument != null) {
+                if (productDocument != null) {
                     status = productDocument.getInteger("status");
                 }
             }
@@ -184,4 +197,48 @@ public class MongoStorage {
 
         return status;
     }
+
+    /**
+     * 根据Operator订购的服务类型来查询可用数量(未过期的)
+     *
+     * @param serviceType service type
+     * @param operatorId  operator ID
+     * @return number of service
+     */
+    public long getServiceCountByOperatorId(Integer serviceType, ObjectId operatorId) {
+        long count = 0;
+        Document query = new Document();
+        query.append("user_id", operatorId);
+        query.append("serviceType", serviceType);
+        query.append("expired_at", new Document("$gte", new Date()));
+        FindIterable<Document> ds = this.database.getCollection("user_services").find(query);
+        if (ds != null) {
+            for (Document d : ds) {
+                if (d.getLong("used") != null) {
+                    count += d.getLong("count") - d.getLong("used");
+                } else {
+                    count += d.getLong("count");
+                }
+            }
+        }
+        return count;
+    }
+
+    /**
+     * Get Operator Id
+     *
+     * @param agentId Agent id
+     * @return Operator id
+     */
+    public String getOperatorIdByAgent(String agentId) {
+        if (!ObjectId.isValid(agentId)) {
+            return null;
+        }
+        Document doc = this.database.getCollection("user_assets_info").find(eq("agent_id", new ObjectId(agentId)))
+                .projection(include("user_id"))
+                .first();
+        if (doc == null) return null;
+        return doc.getObjectId("user_id").toString();
+    }
+
 }

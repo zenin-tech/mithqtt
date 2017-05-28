@@ -965,7 +965,6 @@ public class SyncRedisHandler extends SimpleChannelInboundHandler<MqttMessage> {
             }
         }
     }
-
     /**
      * Handle connection lost condition
      * Both when received DISCONNECT message or not
