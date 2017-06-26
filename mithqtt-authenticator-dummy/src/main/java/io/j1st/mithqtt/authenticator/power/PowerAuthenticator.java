@@ -85,9 +85,13 @@ public class PowerAuthenticator implements Authenticator {
 //        if(!topicName.endsWith("upstream")){
 //            return AuthorizeResult.FORBIDDEN;
 //        }
-        //验证product状态是否正常
-        Integer status = this.mongoStorage.getProductStatusByAgentId(clientId);
-        if (status == null || !status.equals(ProductStatus.SERVICE.value())) {
+//        //验证product状态是否正常
+//        Integer status = this.mongoStorage.getProductStatusByAgentId(clientId);
+//        if (status == null || !status.equals(ProductStatus.SERVICE.value())) {
+//            return AuthorizeResult.FORBIDDEN;
+//        }
+        // Validate Agent Connect Privilege
+        if (this.mongoStorage.isDisableAgent(new ObjectId(clientId), AgentStatus.DISABLED.value())) {
             return AuthorizeResult.FORBIDDEN;
         }
         return AuthorizeResult.OK;

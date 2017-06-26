@@ -534,6 +534,7 @@ public class SyncRedisHandler extends SimpleChannelInboundHandler<MqttMessage> {
 
         } else {
             logger.trace("Authorization failed: Publish to topic {} unauthorized for client {}", topicName, this.clientId);
+            ctx.close();
         }
     }
 
@@ -1034,9 +1035,9 @@ public class SyncRedisHandler extends SimpleChannelInboundHandler<MqttMessage> {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         if (this.connected) {
             if (cause instanceof IOException) {
-                logger.debug("Exception caught: Exception caught from client {} user {}: ", this.clientId, this.userName, ExceptionUtils.getMessage(cause));
+                logger.debug("Exception caught: Exception caught from client {} user {}: {}", this.clientId, this.userName, ExceptionUtils.getMessage(cause));
             } else {
-                logger.debug("Exception caught: Exception caught from client {} user {}: ", this.clientId, this.userName, cause);
+                logger.debug("Exception caught: Exception caught from client {} user {}: {}", this.clientId, this.userName, cause);
             }
         }
         ctx.close();
