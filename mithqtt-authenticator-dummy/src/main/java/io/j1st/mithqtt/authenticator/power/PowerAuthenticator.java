@@ -94,6 +94,7 @@ public class PowerAuthenticator implements Authenticator {
         if (this.mongoStorage.isDisableAgent(new ObjectId(clientId), AgentStatus.DISABLED.value())) {
             return AuthorizeResult.FORBIDDEN;
         }
+
         return AuthorizeResult.OK;
     }
 
