@@ -53,7 +53,7 @@ public class SmartChargerAuthenticator implements Authenticator {
         }
 
         // Validate Agent Connect Privilege
-        if (this.mongoStorage.isDisableAgent(new ObjectId(clientId), AgentStatus.DISABLED.value())) {
+        if (this.mongoStorage.isDisableAgent(clientId, AgentStatus.DISABLED.value())) {
             return AuthorizeResult.FORBIDDEN;
         }
 
@@ -62,10 +62,14 @@ public class SmartChargerAuthenticator implements Authenticator {
 
     @Override
     public AuthorizeResult authPublish(String clientId, String userName, String topicName, int qos, boolean retain) {
-        if (!this.allowDollar && topicName.startsWith("$")) return AuthorizeResult.FORBIDDEN;
-        if (topicName.equals(this.deniedTopic)) return AuthorizeResult.FORBIDDEN;
+        if (!this.allowDollar && topicName.startsWith("$")) {
+            return AuthorizeResult.FORBIDDEN;
+        }
+        if (topicName.equals(this.deniedTopic)) {
+            return AuthorizeResult.FORBIDDEN;
+        }
         // Validate Agent Connect Privilege
-        if (this.mongoStorage.isDisableAgent(new ObjectId(clientId), AgentStatus.DISABLED.value())) {
+        if (this.mongoStorage.isDisableAgent(clientId, AgentStatus.DISABLED.value())) {
             return AuthorizeResult.FORBIDDEN;
         }
 
@@ -77,11 +81,12 @@ public class SmartChargerAuthenticator implements Authenticator {
         List<MqttGrantedQoS> r = new ArrayList<>();
         // subscription
         requestSubscriptions.forEach(subscription -> {
-            if (!this.allowDollar && subscription.topic().startsWith("$")) r.add(MqttGrantedQoS.FAILURE);
-            if (subscription.topic().equals(this.deniedTopic)) r.add(MqttGrantedQoS.FAILURE);
-
-            if (!subscription.topic().endsWith("downstream")) r.add(MqttGrantedQoS.FAILURE);
-            if (!subscription.topic().contains(clientId)) r.add(MqttGrantedQoS.FAILURE);
+            if (!this.allowDollar && subscription.topic().startsWith("$")) {
+                r.add(MqttGrantedQoS.FAILURE);
+            }
+            if (subscription.topic().equals(this.deniedTopic)) {
+                r.add(MqttGrantedQoS.FAILURE);
+            }
             r.add(MqttGrantedQoS.valueOf(subscription.requestedQos().value()));
         });
 

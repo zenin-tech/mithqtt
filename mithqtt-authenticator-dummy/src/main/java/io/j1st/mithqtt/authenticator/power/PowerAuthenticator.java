@@ -67,7 +67,7 @@ public class PowerAuthenticator implements Authenticator {
             }
         }*/
         // Validate Agent Connect Privilege
-        if (this.mongoStorage.isDisableAgent(new ObjectId(clientId), AgentStatus.DISABLED.value())) {
+        if (this.mongoStorage.isDisableAgent(clientId, AgentStatus.DISABLED.value())) {
             return AuthorizeResult.FORBIDDEN;
         }
 
@@ -91,7 +91,7 @@ public class PowerAuthenticator implements Authenticator {
 //            return AuthorizeResult.FORBIDDEN;
 //        }
         // Validate Agent Connect Privilege
-        if (this.mongoStorage.isDisableAgent(new ObjectId(clientId), AgentStatus.DISABLED.value())) {
+        if (this.mongoStorage.isDisableAgent(clientId, AgentStatus.DISABLED.value())) {
             return AuthorizeResult.FORBIDDEN;
         }
 
