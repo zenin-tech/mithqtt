@@ -526,15 +526,14 @@ public class SyncRedisHandler extends SimpleChannelInboundHandler<MqttMessage> {
                 }
             }
             //转换topic为平台标准topic
-            if(topicName.equals("jsonUp")) {
+            /*if(topicName.equals("jsonUp")) {
                 topicName = "agents/"+userName+"/upstream";
-            }
+            }*/
             // Pass message to 3rd party application
             this.communicator.sendToApplication(InternalMessage.fromMqttMessage(topicName,this.version, this.clientId, this.userName, this.brokerId, msg));
 
         } else {
             logger.trace("Authorization failed: Publish to topic {} unauthorized for client {}", topicName, this.clientId);
-            ctx.close();
         }
     }
 
@@ -1040,6 +1039,6 @@ public class SyncRedisHandler extends SimpleChannelInboundHandler<MqttMessage> {
                 logger.debug("Exception caught: Exception caught from client {} user {}: {}", this.clientId, this.userName, cause);
             }
         }
-        ctx.close();
+        //ctx.close();
     }
 }

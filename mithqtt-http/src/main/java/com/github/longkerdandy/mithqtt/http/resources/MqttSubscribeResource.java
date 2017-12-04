@@ -58,10 +58,10 @@ public class MqttSubscribeResource extends AbstractResource {
         List<TopicSubscription> grantedSubscriptions = new ArrayList<>();
 
         // HTTP interface require valid Client Id
-        if (!this.validator.isClientIdValid(clientId)) {
+        /*if (!this.validator.isClientIdValid(clientId)) {
             logger.debug("Protocol violation: Client id {} not valid based on configuration", clientId);
             throw new ValidateException(new ErrorEntity(ErrorCode.INVALID));
-        }
+        }*/
 
         // Validate Topic Filter based on configuration
         for (Subscription subscription : subscriptions) {

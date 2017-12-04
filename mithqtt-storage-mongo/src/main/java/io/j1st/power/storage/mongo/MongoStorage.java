@@ -98,7 +98,7 @@ public class MongoStorage {
      * @return 采集器 or Null
      */
     public boolean isAgentExists(String number) {
-        return this.database.getCollection("gateway_info")
+        return this.database.getCollection("gateway_information")
                 .find(eq("number", number)).first() != null;
     }
 
@@ -110,7 +110,7 @@ public class MongoStorage {
      * @return 采集器 or Null
      */
     public boolean isAgentAuth(String userName, String password) {
-        return this.database.getCollection("gateway_info")
+        return this.database.getCollection("gateway_information")
                 .find(and(eq("number", userName), eq("token", password))).first() != null;
     }
 
@@ -158,7 +158,7 @@ public class MongoStorage {
      * @return is exist
      */
     public boolean isDisableAgent(String number, int status) {
-        return this.database.getCollection("gateway_info")
+        return this.database.getCollection("gateway_information")
                 .find(and(eq("number", number), eq("status", status)))
                 .first() != null;
 
