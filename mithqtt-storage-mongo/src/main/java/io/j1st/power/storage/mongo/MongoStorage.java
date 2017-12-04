@@ -92,32 +92,26 @@ public class MongoStorage {
 
 
     /**
-     * 判断Agent是否存在
+     * 判断设备是否存在
      *
-     * @param id 采集器Id
+     * @param number 设备编号
      * @return 采集器 or Null
      */
-    public boolean isAgentExists(String id) {
-        if (!ObjectId.isValid(id)) {
-            return false;
-        }
-        return this.database.getCollection("agents")
-                .find(eq("_id", new ObjectId(id))).first() != null;
+    public boolean isAgentExists(String number) {
+        return this.database.getCollection("gateway_information")
+                .find(eq("number", number)).first() != null;
     }
 
 
     /**
-     * 判断Agent是否存在
+     * 设备合法性验证
      *
      * @param userName 采集器Id
      * @return 采集器 or Null
      */
     public boolean isAgentAuth(String userName, String password) {
-        if (!ObjectId.isValid(userName)) {
-            return false;
-        }
-        return this.database.getCollection("agents")
-                .find(and(eq("_id", new ObjectId(userName)), eq("token", password))).first() != null;
+        return this.database.getCollection("gateway_information")
+                .find(and(eq("number", userName), eq("token", password))).first() != null;
     }
 
 
@@ -132,7 +126,9 @@ public class MongoStorage {
                 .find(eq("token", token))
                 .projection(exclude("password"))
                 .first();
-        if (d == null) return null;
+        if (d == null) {
+            return null;
+        }
         return d.getObjectId("_id").toString();
     }
 
@@ -157,13 +153,13 @@ public class MongoStorage {
     /**
      * 判断agent是否可连接
      *
-     * @param agentId agent id
-     * @param status  status
+     * @param number 设备编号
+     * @param status  设备状态
      * @return is exist
      */
-    public boolean isDisableAgent(ObjectId agentId, int status) {
-        return this.database.getCollection("agents")
-                .find(and(eq("_id", agentId), eq("status", status)))
+    public boolean isDisableAgent(String number, int status) {
+        return this.database.getCollection("gateway_information")
+                .find(and(eq("number", number), eq("status", status)))
                 .first() != null;
 
     }

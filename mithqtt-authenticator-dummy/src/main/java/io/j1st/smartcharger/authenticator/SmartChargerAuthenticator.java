@@ -1,11 +1,9 @@
-package io.j1st.mithqtt.authenticator.power;
+package io.j1st.smartcharger.authenticator;
 
 import com.github.longkerdandy.mithqtt.api.auth.Authenticator;
 import com.github.longkerdandy.mithqtt.api.auth.AuthorizeResult;
 import io.j1st.power.storage.mongo.MongoStorage;
 import io.j1st.power.storage.mongo.entity.AgentStatus;
-import io.j1st.power.storage.mongo.entity.ProductStatus;
-import io.j1st.power.storage.mongo.entity.ServiceType;
 import io.netty.handler.codec.mqtt.MqttGrantedQoS;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import org.apache.commons.configuration.AbstractConfiguration;
@@ -17,16 +15,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Dummy Authenticator
- * This authenticator basically authorize everything, it should only been used for test purpose
+ * Authenticator
  */
-@SuppressWarnings("unused")
-public class PowerAuthenticator implements Authenticator {
+public class SmartChargerAuthenticator implements Authenticator {
 
-    Logger logger = LoggerFactory.getLogger(PowerAuthenticator.class);
+    Logger logger = LoggerFactory.getLogger(SmartChargerAuthenticator.class);
 
-    private boolean allowDollar;    // allow $ in topic
-    private String deniedTopic;     // topic will be rejected
+    // allow $ in topic
+    private boolean allowDollar;
+    // topic will be rejected
+    private String deniedTopic;
     protected MongoStorage mongoStorage;
 
     @Override
@@ -44,6 +42,7 @@ public class PowerAuthenticator implements Authenticator {
 
     @Override
     public AuthorizeResult authConnect(String clientId, String userName, String password) {
+
         //验证clentId是否有效
         if (!mongoStorage.isAgentExists(clientId)) {
             return AuthorizeResult.FORBIDDEN;
@@ -52,20 +51,7 @@ public class PowerAuthenticator implements Authenticator {
         if (!mongoStorage.isAgentAuth(userName, password)) {
             return AuthorizeResult.FORBIDDEN;
         }
-        //验证product状态是否正常
-        Integer status = this.mongoStorage.getProductStatusByAgentId(clientId);
-        if (status == null || !status.equals(ProductStatus.SERVICE.value())) {
-            return AuthorizeResult.FORBIDDEN;
-        }
-       /* //验证所在的service是否链接已满
-        String userId = this.mongoStorage.getOperatorIdByAgent(clientId);
-        if (userId != null) {
-            //link count
-            long count = this.mongoStorage.getServiceCountByOperatorId(ServiceType.HARDWARE_MANAGER.value(), new ObjectId(userId));
-            if (count <= 0) {
-                return AuthorizeResult.FORBIDDEN;
-            }
-        }*/
+
         // Validate Agent Connect Privilege
         if (this.mongoStorage.isDisableAgent(clientId, AgentStatus.DISABLED.value())) {
             return AuthorizeResult.FORBIDDEN;
@@ -76,20 +62,12 @@ public class PowerAuthenticator implements Authenticator {
 
     @Override
     public AuthorizeResult authPublish(String clientId, String userName, String topicName, int qos, boolean retain) {
-        if (!this.allowDollar && topicName.startsWith("$")) return AuthorizeResult.FORBIDDEN;
-        if (topicName.equals(this.deniedTopic)) return AuthorizeResult.FORBIDDEN;
-        //判断topic是否包括自己的clientId
-//        if(topicName.indexOf(clientId) == -1){
-//            return AuthorizeResult.FORBIDDEN;
-//        }
-//        if(!topicName.endsWith("upstream")){
-//            return AuthorizeResult.FORBIDDEN;
-//        }
-//        //验证product状态是否正常
-//        Integer status = this.mongoStorage.getProductStatusByAgentId(clientId);
-//        if (status == null || !status.equals(ProductStatus.SERVICE.value())) {
-//            return AuthorizeResult.FORBIDDEN;
-//        }
+        if (!this.allowDollar && topicName.startsWith("$")) {
+            return AuthorizeResult.FORBIDDEN;
+        }
+        if (topicName.equals(this.deniedTopic)) {
+            return AuthorizeResult.FORBIDDEN;
+        }
         // Validate Agent Connect Privilege
         if (this.mongoStorage.isDisableAgent(clientId, AgentStatus.DISABLED.value())) {
             return AuthorizeResult.FORBIDDEN;
@@ -101,13 +79,17 @@ public class PowerAuthenticator implements Authenticator {
     @Override
     public List<MqttGrantedQoS> authSubscribe(String clientId, String userName, List<MqttTopicSubscription> requestSubscriptions) {
         List<MqttGrantedQoS> r = new ArrayList<>();
+        // subscription
         requestSubscriptions.forEach(subscription -> {
-            if (!this.allowDollar && subscription.topic().startsWith("$")) r.add(MqttGrantedQoS.FAILURE);
-            if (subscription.topic().equals(this.deniedTopic)) r.add(MqttGrantedQoS.FAILURE);
-            if (!subscription.topic().endsWith("downstream")) r.add(MqttGrantedQoS.FAILURE);
-            if (!subscription.topic().contains(clientId)) r.add(MqttGrantedQoS.FAILURE);
+            if (!this.allowDollar && subscription.topic().startsWith("$")) {
+                r.add(MqttGrantedQoS.FAILURE);
+            }
+            if (subscription.topic().equals(this.deniedTopic)) {
+                r.add(MqttGrantedQoS.FAILURE);
+            }
             r.add(MqttGrantedQoS.valueOf(subscription.requestedQos().value()));
         });
+
         return r;
     }
 
