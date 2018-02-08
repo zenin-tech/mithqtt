@@ -99,7 +99,7 @@ public class MongoStorage {
      */
     public boolean isAgentExists(String number) {
         return this.database.getCollection("gateway_information")
-                .find(eq("number", number)).first() != null;
+                .find(eq("gateway_number", number)).first() != null;
     }
 
 
@@ -111,7 +111,7 @@ public class MongoStorage {
      */
     public boolean isAgentAuth(String userName, String password) {
         return this.database.getCollection("gateway_information")
-                .find(and(eq("number", userName), eq("token", password))).first() != null;
+                .find(and(eq("gateway_number", userName), eq("token", password))).first() != null;
     }
 
 
@@ -159,7 +159,7 @@ public class MongoStorage {
      */
     public boolean isDisableAgent(String number, int status) {
         return this.database.getCollection("gateway_information")
-                .find(and(eq("number", number), eq("status", status)))
+                .find(and(eq("gateway_number", number), eq("status", status)))
                 .first() != null;
 
     }
