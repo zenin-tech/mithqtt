@@ -99,7 +99,7 @@ public class MongoStorage {
      */
     public boolean isAgentExists(String number) {
         return this.database.getCollection("gateway_information")
-                .find(eq("number", number)).first() != null;
+                .find(eq("gateway_number", number)).first() != null;
     }
 
 
@@ -111,7 +111,7 @@ public class MongoStorage {
      */
     public boolean isAgentAuth(String userName, String password) {
         return this.database.getCollection("gateway_information")
-                .find(and(eq("number", userName), eq("token", password))).first() != null;
+                .find(and(eq("gateway_number", userName), eq("token", password))).first() != null;
     }
 
 
@@ -159,7 +159,7 @@ public class MongoStorage {
      */
     public boolean isDisableAgent(String number, int status) {
         return this.database.getCollection("gateway_information")
-                .find(and(eq("number", number), eq("status", status)))
+                .find(and(eq("gateway_number", number), eq("status", status)))
                 .first() != null;
 
     }
@@ -236,5 +236,47 @@ public class MongoStorage {
         if (doc == null) return null;
         return doc.getObjectId("user_id").toString();
     }
+
+    /*===================================================单相机项目验证合法性逻辑==========================================*/
+
+    /**
+     * 判断设备是否存在
+     *
+     * @param number 设备编号
+     * @return 采集器 or Null
+     */
+    public boolean isPvAgentExists(String number) {
+        return this.database.getCollection("gateways")
+                .find(eq("gateway_id", number)).first() != null;
+    }
+
+
+    /**
+     * 设备合法性验证
+     *
+     * @param userName 采集器Id
+     * @return 采集器 or Null
+     */
+    public boolean isPvAgentAuth(String userName, String password) {
+        return this.database.getCollection("gateways")
+                .find(and(eq("gateway_id", userName), eq("token", password))).first() != null;
+    }
+
+
+    /**
+     * 判断agent是否可连接
+     *
+     * @param number 设备编号
+     * @param status 设备状态
+     * @return is exist
+     */
+    public boolean isPvDisableAgent(String number, int status) {
+        return this.database.getCollection("gateways")
+                .find(and(eq("gateway_id", number), eq("status", status)))
+                .first() != null;
+
+    }
+
+
 
 }
