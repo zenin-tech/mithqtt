@@ -1,6 +1,7 @@
 package io.j1st.power.storage.mongo;
 
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientURI;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.FindIterable;
@@ -10,6 +11,7 @@ import org.apache.commons.configuration.AbstractConfiguration;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
+import javax.print.Doc;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -29,16 +31,18 @@ public class MongoStorage {
 
     public void init(AbstractConfiguration config) {
         // MongoClient
-        List<ServerAddress> addresses = parseAddresses(config.getString("mongo.address"));
-        List<MongoCredential> credentials = parseCredentials(
-                config.getString("mongo.userName"),
-                "admin",
-                config.getString("mongo.password"));
-        if (addresses.size() == 1) {
-            this.client = new MongoClient(addresses.get(0), credentials);
-        } else {
-            this.client = new MongoClient(addresses, credentials);
-        }
+//        List<ServerAddress> addresses = parseAddresses(config.getString("mongo.address"));
+//        List<MongoCredential> credentials = parseCredentials(
+//                config.getString("mongo.userName"),
+//                "admin",
+//                config.getString("mongo.password"));
+//        if (addresses.size() == 1) {
+//            this.client = new MongoClient(addresses.get(0), credentials);
+//        } else {
+//            this.client = new MongoClient(addresses, credentials);
+//        }
+        MongoClientURI uri = new MongoClientURI(config.getString("mongo.url"));
+        this.client = new MongoClient(uri);
         this.database = this.client.getDatabase(config.getString("mongo.database"));
     }
 
@@ -70,25 +74,26 @@ public class MongoStorage {
     }
 
 
-    /* =========================================== Agent Operations ===============================================*/
+    /* =========================================== CPS Agent Operations ===============================================*/
 
 
     /**
-     * 判断 采集器 权限
+     * 设备合法性验证
      *
-     * @param id         采集器Id
-     * @param permission 最低权限
-     * @return True 权限满足
+     * @param userName 采集器Id
+     * @return 采集器 or Null
      */
-    public boolean isAgentdByUser(String id, Permission permission) {
-        if (!ObjectId.isValid(id)) {
-            return false;
+    public Integer getPowerAgentAuth(String userName, String password) {
+        Document doc = this.database.getCollection("agents")
+                .find(and(eq("_id", new ObjectId(userName)), eq("token", password))).first();
+        if(doc != null && doc.get("status") != null) {
+            return doc.getInteger("status");
         }
-        return this.database.getCollection("agents")
-                .find(and(eq("_id", new ObjectId(id)), eq("permissions", new Document("$elemMatch", new Document()
-                        .append("user_id", permission.getUserId())))))
-                .first() != null;
+        return null;
     }
+
+
+ /* =========================================== 充电桩项目验证方法 ===============================================*/
 
 
     /**
@@ -133,24 +138,6 @@ public class MongoStorage {
     }
 
     /**
-     * 获取 产品 是否被激活
-     * 激活的定义为：旗下采集器至少有一个被激活
-     *
-     * @param productId 产品Id
-     * @return True 被激活
-     */
-    public boolean isProductActivated(String productId) {
-        if (!ObjectId.isValid(productId)) {
-            return false;
-        }
-        return this.database.getCollection("agents")
-                .find(and(eq("product_id", new ObjectId(productId)), exists("activated_at", true)))
-                .projection(include("_id"))
-                .first() != null;
-
-    }
-
-    /**
      * 判断agent是否可连接
      *
      * @param number 设备编号
@@ -162,79 +149,6 @@ public class MongoStorage {
                 .find(and(eq("gateway_number", number), eq("status", status)))
                 .first() != null;
 
-    }
-
-    /**
-     * 获取 产品 是否被激活
-     * 激活的定义为：旗下采集器至少有一个被激活
-     *
-     * @param agentId
-     * @return True 被激活
-     */
-    public Integer getProductStatusByAgentId(String agentId) {
-        Integer status = null;
-        if (!ObjectId.isValid(agentId)) {
-            return null;
-        }
-        Document agentDocument = this.database.getCollection("agents")
-                .find(eq("_id", new ObjectId(agentId)))
-                .first();
-        if (agentDocument != null) {
-            ObjectId productId = agentDocument.getObjectId("product_id");
-            if (productId != null) {
-                Document productDocument = this.database.getCollection("products")
-                        .find(eq("_id", productId))
-                        .first();
-                if (productDocument != null) {
-                    status = productDocument.getInteger("status");
-                }
-            }
-        }
-
-        return status;
-    }
-
-    /**
-     * 根据Operator订购的服务类型来查询可用数量(未过期的)
-     *
-     * @param serviceType service type
-     * @param operatorId  operator ID
-     * @return number of service
-     */
-    public long getServiceCountByOperatorId(Integer serviceType, ObjectId operatorId) {
-        long count = 0;
-        Document query = new Document();
-        query.append("user_id", operatorId);
-        query.append("serviceType", serviceType);
-        query.append("expired_at", new Document("$gte", new Date()));
-        FindIterable<Document> ds = this.database.getCollection("user_services").find(query);
-        if (ds != null) {
-            for (Document d : ds) {
-                if (d.getLong("used") != null) {
-                    count += d.getLong("count") - d.getLong("used");
-                } else {
-                    count += d.getLong("count");
-                }
-            }
-        }
-        return count;
-    }
-
-    /**
-     * Get Operator Id
-     *
-     * @param agentId Agent id
-     * @return Operator id
-     */
-    public String getOperatorIdByAgent(String agentId) {
-        if (!ObjectId.isValid(agentId)) {
-            return null;
-        }
-        Document doc = this.database.getCollection("user_assets_info").find(eq("agent_id", new ObjectId(agentId)))
-                .projection(include("user_id"))
-                .first();
-        if (doc == null) return null;
-        return doc.getObjectId("user_id").toString();
     }
 
     /*===================================================单相机项目验证合法性逻辑==========================================*/
@@ -277,6 +191,19 @@ public class MongoStorage {
 
     }
 
-
+    /**
+     * 设备合法性验证
+     *
+     * @param userName 采集器Id
+     * @return 采集器 or Null
+     */
+    public Integer getPvGatewayStatus(String userName, String password) {
+        Document doc = this.database.getCollection("gateways")
+                .find(and(eq("gateway_id", userName), eq("token", password))).first();
+        if(doc != null && doc.get("status") != null){
+            return doc.getInteger("status");
+        }
+        return null;
+    }
 
 }

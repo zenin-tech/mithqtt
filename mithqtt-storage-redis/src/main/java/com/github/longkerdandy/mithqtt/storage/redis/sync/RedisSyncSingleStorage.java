@@ -95,10 +95,10 @@ public class RedisSyncSingleStorage implements RedisSyncStorage {
 
         List<String> address = parseRedisAddress(config.getString("redis.address"), 6379);
         int databaseNumber = config.getInt("redis.database", 0);
-        String password = StringUtils.isNotEmpty(config.getString("redis.password")) ? config.getString("redis.password") + "@" : "";
+        String password = StringUtils.isNotEmpty(config.getString("redis.password")) ? config.getString("redis.password") : "";
 
         // lettuce
-        RedisURI lettuceURI = RedisURI.create("redis://" + password + address.get(0) + "/" + databaseNumber);
+        RedisURI lettuceURI = RedisURI.create("redis://" + password +"@"+ address.get(0) + "/" + databaseNumber);
         this.lettuce = RedisClient.create(lettuceURI);
         this.lettuceConn = this.lettuce.connect();
 
