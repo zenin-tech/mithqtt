@@ -585,7 +585,7 @@ public class SyncRedisHandler extends SimpleChannelInboundHandler<MqttMessage> {
                 pid = this.redis.getNextPacketId(cid);
             }
 
-            Publish p = new Publish(msg.variableHeader().topicName(), pid, bytes);
+            Publish p = new Publish(msg.variableHeader().topicName(), pid, bytes,System.currentTimeMillis());
             InternalMessage<Publish> m = new InternalMessage<>(MqttMessageType.PUBLISH, false, fQos, false,
                     MqttVersion.MQTT_3_1_1, cid, null, null, p);
 
