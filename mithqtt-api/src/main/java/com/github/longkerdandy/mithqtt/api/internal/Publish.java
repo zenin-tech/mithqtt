@@ -16,6 +16,13 @@ public class Publish implements Serializable {
     protected Publish() {
     }
 
+    public Publish(String topicName, int packetId, byte[] payload) {
+        this.topicName = topicName;
+        this.packetId = packetId;
+        this.payload = payload;
+        this.timestamp = System.currentTimeMillis();
+    }
+
     public Publish(String topicName, int packetId, byte[] payload,long timestamp) {
         this.topicName = topicName;
         this.packetId = packetId;

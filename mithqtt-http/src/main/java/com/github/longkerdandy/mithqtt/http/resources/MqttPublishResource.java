@@ -248,7 +248,7 @@ public class MqttPublishResource extends AbstractResource {
             logger.trace("Authorization succeed: Publish to topic {} authorized for client {}", topicName, clientId);
 
             // Construct Internal Message
-            Publish publish = new Publish(topicName, packetId, payload);
+            Publish publish = new Publish(topicName, packetId, payload,System.currentTimeMillis());
             InternalMessage<Publish> msg = new InternalMessage<>(MqttMessageType.PUBLISH, dup, MqttQoS.valueOf(qos), false, version, clientId, userName, this.serverId, publish);
 
             // When sending a PUBLISH Packet to a Client the Server MUST set the RETAIN flag to 1 if a message is
@@ -285,7 +285,7 @@ public class MqttPublishResource extends AbstractResource {
                 }
 
                 // Construct Internal Message
-                Publish p = new Publish(topicName, pid, payload);
+                Publish p = new Publish(topicName, pid, payload,System.currentTimeMillis());
                 InternalMessage<Publish> m = new InternalMessage<>(MqttMessageType.PUBLISH, false, fQos, false, MqttVersion.MQTT_3_1_1, cid, null, null, p);
 
                 // Forward to recipient
