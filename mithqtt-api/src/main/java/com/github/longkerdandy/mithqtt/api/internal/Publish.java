@@ -53,4 +53,12 @@ public class Publish implements Serializable {
     public void setPayload(byte[] payload) {
         this.payload = payload;
     }
+
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
+    }
 }
