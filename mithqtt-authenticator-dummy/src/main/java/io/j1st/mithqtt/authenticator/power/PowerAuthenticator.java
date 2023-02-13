@@ -45,18 +45,19 @@ public class PowerAuthenticator implements Authenticator {
     @Override
     public AuthorizeResult authConnect(String clientId, String userName, String password) {
         //验证clentId是否有效
-        if (!mongoStorage.isAgentExists(clientId)) {
-            return AuthorizeResult.FORBIDDEN;
-        }
-        //验证用户名密码是否合法
-        if (!mongoStorage.isAgentAuth(userName, password)) {
+//        if (!mongoStorage.isAgentExists(clientId)) {
+//            return AuthorizeResult.FORBIDDEN;
+//        }
+        //验证用户名密码是否合法及状态是否正常
+        Integer status = mongoStorage.getPowerAgentAuth(userName, password);
+        if (status == null || status == AgentStatus.DISABLED.value()) {
             return AuthorizeResult.FORBIDDEN;
         }
         //验证product状态是否正常
-        Integer status = this.mongoStorage.getProductStatusByAgentId(clientId);
-        if (status == null || !status.equals(ProductStatus.SERVICE.value())) {
-            return AuthorizeResult.FORBIDDEN;
-        }
+//        Integer status = this.mongoStorage.getProductStatusByAgentId(clientId);
+//        if (status == null || !status.equals(ProductStatus.SERVICE.value())) {
+//            return AuthorizeResult.FORBIDDEN;
+//        }
        /* //验证所在的service是否链接已满
         String userId = this.mongoStorage.getOperatorIdByAgent(clientId);
         if (userId != null) {
@@ -66,10 +67,6 @@ public class PowerAuthenticator implements Authenticator {
                 return AuthorizeResult.FORBIDDEN;
             }
         }*/
-        // Validate Agent Connect Privilege
-        if (this.mongoStorage.isDisableAgent(clientId, AgentStatus.DISABLED.value())) {
-            return AuthorizeResult.FORBIDDEN;
-        }
 
         return AuthorizeResult.OK;
     }
@@ -94,7 +91,6 @@ public class PowerAuthenticator implements Authenticator {
         if (this.mongoStorage.isDisableAgent(clientId, AgentStatus.DISABLED.value())) {
             return AuthorizeResult.FORBIDDEN;
         }
-
         return AuthorizeResult.OK;
     }
 

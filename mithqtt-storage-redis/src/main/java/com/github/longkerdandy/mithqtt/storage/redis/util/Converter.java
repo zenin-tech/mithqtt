@@ -45,7 +45,7 @@ public class Converter {
                     new Publish(
                             map.get("topicName"),
                             Integer.parseInt(map.getOrDefault("packetId", "0")),
-                            payload
+                            payload,System.currentTimeMillis()
                     ));
         } else if (type == MqttMessageType.PUBREL.value()) {
             return new InternalMessage<>(

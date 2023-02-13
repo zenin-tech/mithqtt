@@ -16,12 +16,15 @@
 
 package io.netty.handler.codec.mqtt;
 
+import com.github.longkerdandy.mithqtt.util.DataUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.ReplayingDecoder;
 import io.netty.handler.codec.mqtt.MqttDecoder.DecoderState;
 import io.netty.util.CharsetUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +36,9 @@ import java.util.List;
  */
 public class MqttDecoder extends ReplayingDecoder<DecoderState> {
 
-    private static final int DEFAULT_MAX_BYTES_IN_MESSAGE = 8092;
+    Logger logger = LoggerFactory.getLogger(MqttDecoder.class);
+
+    private static final int DEFAULT_MAX_BYTES_IN_MESSAGE = 32 * 1024;
     private final int maxBytesInMessage;
     private MqttFixedHeader mqttFixedHeader;
     private Object variableHeader;
@@ -352,6 +357,7 @@ public class MqttDecoder extends ReplayingDecoder<DecoderState> {
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf buffer, List<Object> out) throws Exception {
+
         switch (state()) {
             case READ_FIXED_HEADER:
                 try {

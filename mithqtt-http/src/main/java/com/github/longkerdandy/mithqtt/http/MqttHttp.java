@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.github.longkerdandy.mithqtt.http.oauth.OAuthAuthenticator;
+import com.github.longkerdandy.mithqtt.http.resources.MqttDisconnectResource;
 import com.github.longkerdandy.mithqtt.http.resources.MqttSubscribeResource;
 import com.github.longkerdandy.mithqtt.http.resources.MqttUnsubscribeResource;
 import com.github.longkerdandy.mithqtt.http.util.Validator;
@@ -146,7 +147,7 @@ public class MqttHttp extends Application<MqttHttpConfiguration> {
         environment.jersey().register(new MqttPublishResource(configuration.getServerId(), validator, redis, communicator, authenticator, metrics));
         environment.jersey().register(new MqttSubscribeResource(configuration.getServerId(), validator, redis, communicator, authenticator, metrics));
         environment.jersey().register(new MqttUnsubscribeResource(configuration.getServerId(), validator, redis, communicator, authenticator, metrics));
-
+        environment.jersey().register(new MqttDisconnectResource(configuration.getServerId(), validator, redis, communicator, authenticator, metrics));
 
         // config jackson
         environment.getObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);

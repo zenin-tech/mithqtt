@@ -32,7 +32,7 @@ public class InternalMessage<T> implements Serializable {
     // variable header and payload
     private T payload;
 
-    protected InternalMessage() {
+    public InternalMessage() {
     }
 
     public InternalMessage(MqttMessageType messageType, boolean dup, MqttQoS qos, boolean retain,
@@ -121,7 +121,7 @@ public class InternalMessage<T> implements Serializable {
         ByteBuf buf = mqtt.payload().duplicate();
         byte[] bytes = new byte[buf.readableBytes()];
         buf.readBytes(bytes);
-        msg.payload = new Publish(mqtt.variableHeader().topicName(), mqtt.variableHeader().packetId(), bytes);
+        msg.payload = new Publish(mqtt.variableHeader().topicName(), mqtt.variableHeader().packetId(), bytes,System.currentTimeMillis());
         return msg;
     }
 
@@ -133,7 +133,7 @@ public class InternalMessage<T> implements Serializable {
         ByteBuf buf = mqtt.payload().duplicate();
         byte[] bytes = new byte[buf.readableBytes()];
         buf.readBytes(bytes);
-        msg.payload = new Publish(topic, mqtt.variableHeader().packetId(), bytes);
+        msg.payload = new Publish(topic, mqtt.variableHeader().packetId(), bytes,System.currentTimeMillis());
         return msg;
     }
 

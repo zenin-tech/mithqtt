@@ -74,6 +74,7 @@ public class SyncRedisHandler extends SimpleChannelInboundHandler<MqttMessage> {
         // Disconnect if The MQTT message is invalid
         if (msg.decoderResult().isFailure()) {
             Throwable cause = msg.decoderResult().cause();
+            logger.debug("Protocol violation:  message  {}", msg.toString());
             logger.debug("Protocol violation: Invalid message {}", ExceptionUtils.getMessage(msg.decoderResult().cause()));
             if (cause instanceof MqttUnacceptableProtocolVersionException) {
                 // Send back CONNACK if the protocol version is invalid
@@ -137,6 +138,7 @@ public class SyncRedisHandler extends SimpleChannelInboundHandler<MqttMessage> {
     }
 
     protected void onConnect(ChannelHandlerContext ctx, MqttConnectMessage msg) {
+        logger.info(msg.payload().userName() +" connect ip address = "+ctx.channel().remoteAddress());
         this.version = MqttVersion.fromProtocolNameAndLevel(msg.variableHeader().protocolName(), (byte) msg.variableHeader().protocolLevel());
         this.clientId = msg.payload().clientId();
         this.cleanSession = msg.variableHeader().cleanSession();
@@ -583,7 +585,7 @@ public class SyncRedisHandler extends SimpleChannelInboundHandler<MqttMessage> {
                 pid = this.redis.getNextPacketId(cid);
             }
 
-            Publish p = new Publish(msg.variableHeader().topicName(), pid, bytes);
+            Publish p = new Publish(msg.variableHeader().topicName(), pid, bytes,System.currentTimeMillis());
             InternalMessage<Publish> m = new InternalMessage<>(MqttMessageType.PUBLISH, false, fQos, false,
                     MqttVersion.MQTT_3_1_1, cid, null, null, p);
 

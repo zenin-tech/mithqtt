@@ -11,6 +11,7 @@ public class Publish implements Serializable {
     private String topicName;
     private int packetId;
     private byte[] payload;
+    private long timestamp;
 
     protected Publish() {
     }
@@ -19,6 +20,14 @@ public class Publish implements Serializable {
         this.topicName = topicName;
         this.packetId = packetId;
         this.payload = payload;
+        this.timestamp = System.currentTimeMillis();
+    }
+
+    public Publish(String topicName, int packetId, byte[] payload,long timestamp) {
+        this.topicName = topicName;
+        this.packetId = packetId;
+        this.payload = payload;
+        this.timestamp = timestamp;
     }
 
     public String getTopicName() {
@@ -43,5 +52,13 @@ public class Publish implements Serializable {
 
     public void setPayload(byte[] payload) {
         this.payload = payload;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
     }
 }

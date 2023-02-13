@@ -17,7 +17,7 @@ import java.util.List;
 public class PhotoVoltaicAuthenticator implements Authenticator {
 
 
-    Logger logger = LoggerFactory.getLogger(SmartChargerAuthenticator.class);
+    Logger logger = LoggerFactory.getLogger(PhotoVoltaicAuthenticator.class);
 
     /**
      * allow $ in topic
@@ -51,19 +51,23 @@ public class PhotoVoltaicAuthenticator implements Authenticator {
     @Override
     public AuthorizeResult authConnect(String clientId, String userName, String password) {
         //验证clentId是否有效
-        if (!mongoStorage.isPvAgentExists(clientId)) {
+//        if (!mongoStorage.isPvAgentExists(clientId)) {
+//            return AuthorizeResult.FORBIDDEN;
+//        }
+//        //验证用户名密码是否合法
+//        if (!mongoStorage.isPvAgentAuth(userName, password)) {
+//            return AuthorizeResult.FORBIDDEN;
+//        }
+//
+//        // Validate Agent Connect Privilege
+//        if (this.mongoStorage.isPvDisableAgent(clientId, AgentStatus.DISABLED.value())) {
+//            return AuthorizeResult.FORBIDDEN;
+//        }
+        //查询网关的状态
+        Integer status = this.mongoStorage.getPvGatewayStatus(userName,password);
+        if(status == null || status == AgentStatus.DISABLED.value()){
             return AuthorizeResult.FORBIDDEN;
         }
-        //验证用户名密码是否合法
-        if (!mongoStorage.isPvAgentAuth(userName, password)) {
-            return AuthorizeResult.FORBIDDEN;
-        }
-
-        // Validate Agent Connect Privilege
-        if (this.mongoStorage.isPvDisableAgent(clientId, AgentStatus.DISABLED.value())) {
-            return AuthorizeResult.FORBIDDEN;
-        }
-
         return AuthorizeResult.OK;
     }
 
@@ -76,9 +80,9 @@ public class PhotoVoltaicAuthenticator implements Authenticator {
             return AuthorizeResult.FORBIDDEN;
         }
         // Validate Agent Connect Privilege
-        if (this.mongoStorage.isPvDisableAgent(clientId, AgentStatus.DISABLED.value())) {
-            return AuthorizeResult.FORBIDDEN;
-        }
+//        if (this.mongoStorage.isPvDisableAgent(clientId, AgentStatus.DISABLED.value())) {
+//            return AuthorizeResult.FORBIDDEN;
+//        }
 
         return AuthorizeResult.OK;
     }
