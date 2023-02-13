@@ -311,7 +311,7 @@ public class MqttPublishResource extends AbstractResource {
             });
 
             // Pass message to 3rd party application
-            this.communicator.sendToApplication(msg);
+            //this.communicator.sendToApplication(msg);
 
             logger.info("clientId {} publish message to rabbitmq success . message topic = {}", clientId, topicName);
             return true;
