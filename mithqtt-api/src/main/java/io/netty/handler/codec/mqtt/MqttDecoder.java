@@ -38,7 +38,7 @@ public class MqttDecoder extends ReplayingDecoder<DecoderState> {
 
     Logger logger = LoggerFactory.getLogger(MqttDecoder.class);
 
-    private static final int DEFAULT_MAX_BYTES_IN_MESSAGE = 1024 * 1024;
+    private static final int DEFAULT_MAX_BYTES_IN_MESSAGE = 32 * 1024;
     private final int maxBytesInMessage;
     private MqttFixedHeader mqttFixedHeader;
     private Object variableHeader;
