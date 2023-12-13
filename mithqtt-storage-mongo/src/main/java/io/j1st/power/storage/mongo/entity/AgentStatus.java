@@ -5,8 +5,8 @@ package io.j1st.power.storage.mongo.entity;
  */
 public enum AgentStatus {
 
-    ENABLE(1),       //正常
-    DISABLED(2);     //停用
+    ENABLE(0),       //正常
+    DISABLED(1);     //停用
 
     private final int value;
 
