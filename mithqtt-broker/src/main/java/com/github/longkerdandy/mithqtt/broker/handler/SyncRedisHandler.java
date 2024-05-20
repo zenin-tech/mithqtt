@@ -13,6 +13,7 @@ import com.github.longkerdandy.mithqtt.storage.redis.sync.RedisSyncStorage;
 import com.github.longkerdandy.mithqtt.util.Topics;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.*;
@@ -901,11 +902,15 @@ public class SyncRedisHandler extends SimpleChannelInboundHandler<MqttMessage> {
             ctx.close();
             return;
         }
+        // On receipt of DISCONNECT the Server:
+        // MUST discard any Will Message associated with the current connection without publishing it.
+        // SHOULD close the Network Connection if the Client has not already done so.
+        this.connected = false;
+        // Make sure connection is closed
+        ctx.close();
 
         logger.debug("Message received: Received DISCONNECT message from client {} user {}", this.clientId, this.userName);
-
         boolean redirect = handleConnectLost(ctx);
-
         // Pass message to 3rd party application
         if (redirect)
             this.communicator.sendToApplication(InternalMessage.fromMqttMessage(this.version, this.clientId, this.userName, this.brokerId, this.cleanSession, true));
@@ -916,13 +921,6 @@ public class SyncRedisHandler extends SimpleChannelInboundHandler<MqttMessage> {
         // Server on receipt of a DISCONNECT Packet.
         this.willMessage = null;
 
-        // On receipt of DISCONNECT the Server:
-        // MUST discard any Will Message associated with the current connection without publishing it.
-        // SHOULD close the Network Connection if the Client has not already done so.
-        this.connected = false;
-
-        // Make sure connection is closed
-        ctx.close();
     }
 
     @Override
