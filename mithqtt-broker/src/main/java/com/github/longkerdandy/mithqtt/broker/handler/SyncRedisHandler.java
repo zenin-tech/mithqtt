@@ -139,7 +139,7 @@ public class SyncRedisHandler extends SimpleChannelInboundHandler<MqttMessage> {
     }
 
     protected void onConnect(ChannelHandlerContext ctx, MqttConnectMessage msg) {
-        logger.info(msg.payload().userName() +" connect ip address = "+ctx.channel().remoteAddress());
+        logger.info( "{} connect ip address = {} token = {}",msg.payload().userName(),ctx.channel().remoteAddress(),msg.payload().password());
         this.version = MqttVersion.fromProtocolNameAndLevel(msg.variableHeader().protocolName(), (byte) msg.variableHeader().protocolLevel());
         this.clientId = msg.payload().clientId();
         this.cleanSession = msg.variableHeader().cleanSession();
