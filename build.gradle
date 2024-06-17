@@ -4,7 +4,7 @@ subprojects {
     apply plugin: 'maven'
 
     // Group Id
-    group 'com.github.longkerdandy'
+    group 'com.fomware.mithqtt'
 
     // Version
     version '1.0.0.Beta1-SNAPSHOT'

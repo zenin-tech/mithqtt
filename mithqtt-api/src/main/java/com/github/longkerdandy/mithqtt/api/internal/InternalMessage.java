@@ -29,6 +29,8 @@ public class InternalMessage<T> implements Serializable {
     // broker id, only meaningful when the message is sent by broker
     private String brokerId;
 
+    private String ip;
+
     // variable header and payload
     private T payload;
 
@@ -227,6 +229,14 @@ public class InternalMessage<T> implements Serializable {
 
     public void setPayload(T payload) {
         this.payload = payload;
+    }
+
+    public String getIp() {
+        return ip;
+    }
+
+    public void setIp(String ip) {
+        this.ip = ip;
     }
 
     public MqttMessage toMqttMessage() {

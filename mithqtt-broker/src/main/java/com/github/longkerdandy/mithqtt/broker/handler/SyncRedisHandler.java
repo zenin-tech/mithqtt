@@ -1,12 +1,9 @@
 package com.github.longkerdandy.mithqtt.broker.handler;
 
 import com.github.longkerdandy.mithqtt.api.auth.AuthorizeResult;
-import com.github.longkerdandy.mithqtt.api.internal.InternalMessage;
-import com.github.longkerdandy.mithqtt.api.internal.Publish;
+import com.github.longkerdandy.mithqtt.api.internal.*;
 import com.github.longkerdandy.mithqtt.api.auth.Authenticator;
 import com.github.longkerdandy.mithqtt.api.comm.BrokerCommunicator;
-import com.github.longkerdandy.mithqtt.api.internal.Disconnect;
-import com.github.longkerdandy.mithqtt.api.internal.PacketId;
 import com.github.longkerdandy.mithqtt.broker.session.SessionRegistry;
 import com.github.longkerdandy.mithqtt.broker.util.Validator;
 import com.github.longkerdandy.mithqtt.storage.redis.sync.RedisSyncStorage;
@@ -138,7 +135,11 @@ public class SyncRedisHandler extends SimpleChannelInboundHandler<MqttMessage> {
     }
 
     protected void onConnect(ChannelHandlerContext ctx, MqttConnectMessage msg) {
-        logger.info(msg.payload().userName() +" connect ip address = "+ctx.channel().remoteAddress());
+        String ip = "";
+        if(ctx.channel().remoteAddress() != null){
+            ip = ctx.channel().remoteAddress().toString();
+        }
+        logger.info(msg.payload().userName() +" connect ip address = "+ip);
         this.version = MqttVersion.fromProtocolNameAndLevel(msg.variableHeader().protocolName(), (byte) msg.variableHeader().protocolLevel());
         this.clientId = msg.payload().clientId();
         this.cleanSession = msg.variableHeader().cleanSession();
@@ -382,7 +383,9 @@ public class SyncRedisHandler extends SimpleChannelInboundHandler<MqttMessage> {
             this.registry.saveSession(this.clientId, ctx);
 
             // Pass message to 3rd party application
-            this.communicator.sendToApplication(InternalMessage.fromMqttMessage(this.version, this.clientId, this.userName, this.brokerId, msg));
+            InternalMessage<Connect> message = InternalMessage.fromMqttMessage(this.version, this.clientId, this.userName, this.brokerId, msg);
+            message.setIp(ip);
+            this.communicator.sendToApplication(message);
         }
 
         // Authorize failed
