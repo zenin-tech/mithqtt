@@ -29,6 +29,9 @@ public class RabbitMQApplicationCommunicator implements ApplicationCommunicator 
     // application
     protected String APPLICATION_TOPIC;
 
+
+    protected String GW_TOPIC;
+
     @Override
     public void init(AbstractConfiguration config, ApplicationListenerFactory factory) {
         try {
@@ -52,6 +55,20 @@ public class RabbitMQApplicationCommunicator implements ApplicationCommunicator 
             consumerChan.queueDeclare(config.getString("rabbitmq.app.queueName"), true, false, true, null);
             consumerChan.queueBind(config.getString("rabbitmq.app.queueName"), APPLICATION_TOPIC, config.getString("rabbitmq.app.routingKey"));
             consumerChan.basicConsume(config.getString("rabbitmq.app.queueName"), true, new RabbitMQApplicationConsumer(consumerChan, factory.newListener()));
+
+            // M2M不需要配置，但Broker和M2M共用的对象
+            try {
+                GW_TOPIC = config.getString("communicator.gw.topic");
+                this.channel.exchangeDeclare(GW_TOPIC, "topic", true);
+
+                logger.trace("Initializing RabbitMQ gw consumer's workers ...");
+                Channel channel1 = this.conn.createChannel();
+                channel1.queueDeclare(config.getString("rabbitmq.gw.queueName"), true, false, true, null);
+                channel1.queueBind(config.getString("rabbitmq.gw.queueName"), GW_TOPIC, config.getString("rabbitmq.app.routingKey"));
+                channel1.basicConsume(config.getString("rabbitmq.gw.queueName"), true, new RabbitMQApplicationConsumer(channel1, factory.newListener()));
+            }catch (Exception e) {
+                logger.error("no config communicator.gw.topic exchange");
+            }
 
         } catch (IOException | TimeoutException e) {
             logger.error("Failed to connect to RabbitMQ servers", e);
