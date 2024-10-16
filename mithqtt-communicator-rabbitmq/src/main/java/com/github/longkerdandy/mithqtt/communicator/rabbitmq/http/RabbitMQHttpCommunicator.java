@@ -1,5 +1,6 @@
 package com.github.longkerdandy.mithqtt.communicator.rabbitmq.http;
 
+import com.alibaba.fastjson2.JSON;
 import com.github.longkerdandy.mithqtt.api.comm.HttpCommunicator;
 import com.github.longkerdandy.mithqtt.api.internal.InternalMessage;
 import com.github.longkerdandy.mithqtt.communicator.rabbitmq.ex.RabbitMQExceptionHandler;
@@ -10,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -73,6 +75,17 @@ public class RabbitMQHttpCommunicator implements HttpCommunicator {
             // this.channel.exchangeDeclare(brokerTopic, "topic");
             this.channel.basicPublish(brokerTopic, message.getMessageType().name(), MessageProperties.BASIC, JSONs.Mapper.writeValueAsBytes(message));
         } catch (IOException e) {
+            logger.warn("Communicator failed: Failed to send message {} to exchange {}: ", message.getMessageType(), brokerTopic, e);
+        }
+    }
+
+    @Override
+    public void sendToBrokerInternal(String internalIp, InternalMessage message) {
+        String brokerTopic = "broker_exchange_" + internalIp;
+        try {
+            String msg = JSON.toJSONString(message);
+            this.channel.basicPublish(brokerTopic, message.getMessageType().name(), MessageProperties.BASIC, msg.getBytes(StandardCharsets.UTF_8));
+        }catch (Exception e){
             logger.warn("Communicator failed: Failed to send message {} to exchange {}: ", message.getMessageType(), brokerTopic, e);
         }
     }

@@ -111,4 +111,9 @@ public class PowerAuthenticator implements Authenticator {
     public String oauth(String credentials) {
         return mongoStorage.getUserByToken(credentials);
     }
+
+    @Override
+    public String getClientInternalIp(String clientId) {
+        return null;
+    }
 }

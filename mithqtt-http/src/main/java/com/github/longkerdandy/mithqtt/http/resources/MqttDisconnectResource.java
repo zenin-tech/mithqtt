@@ -40,7 +40,18 @@ public class MqttDisconnectResource extends AbstractResource {
     public ResultEntity<Boolean> disconnect(@PathParam("clientId") String clientId) {
 
        logger.info("clientId {} disconnect to rabbitmq server",clientId);
-       String brokerId = this.redis.getConnectedNode(clientId);
+
+        String internalIp = this.authenticator.getClientInternalIp(clientId);
+        if (StringUtils.isNotBlank(internalIp)) {
+            InternalMessage<String> internalMessage = new InternalMessage<>();
+            internalMessage.setUserName(clientId);
+            internalMessage.setClientId(clientId);
+            internalMessage.setMessageType(MqttMessageType.DISCONNECT);
+            this.communicator.sendToBrokerInternal(internalIp, internalMessage);
+            return new ResultEntity<>(true);
+        }
+
+        String brokerId = this.redis.getConnectedNode(clientId);
        if(StringUtils.isBlank(brokerId)){
            return new ResultEntity<>(null);
        }

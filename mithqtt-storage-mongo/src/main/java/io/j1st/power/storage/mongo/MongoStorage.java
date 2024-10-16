@@ -8,6 +8,7 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoDatabase;
 import io.j1st.power.storage.mongo.entity.Permission;
 import org.apache.commons.configuration.AbstractConfiguration;
+import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
@@ -28,6 +29,7 @@ public class MongoStorage {
 
     protected MongoClient client;
     protected MongoDatabase database;
+    protected MongoDatabase brokerData;
 
     public void init(AbstractConfiguration config) {
         // MongoClient
@@ -44,6 +46,11 @@ public class MongoStorage {
         MongoClientURI uri = new MongoClientURI(config.getString("mongo.url"));
         this.client = new MongoClient(uri);
         this.database = this.client.getDatabase(config.getString("mongo.database"));
+
+        String broker = config.getString("mongo.broker");
+        if (StringUtils.isNotBlank(broker)) {
+            this.brokerData = this.client.getDatabase(config.getString("mongo.broker"));
+        }
     }
 
 
@@ -206,4 +213,12 @@ public class MongoStorage {
         return null;
     }
 
+    public String getClientInternalIp(String clientId){
+        Document doc = this.brokerData.getCollection("mqtt_client")
+                .find(and(eq("client_id", clientId))).first();
+        if (doc == null) {
+            return null;
+        }
+        return doc.getString("internal_ip");
+    }
 }

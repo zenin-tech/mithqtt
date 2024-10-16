@@ -30,6 +30,8 @@ public interface HttpCommunicator {
      */
     void sendToBroker(String brokerId, InternalMessage message);
 
+    void sendToBrokerInternal(String internalIp, InternalMessage message);
+
     /**
      * Send internal message to outside
      * 3rd party application can handle the message from there

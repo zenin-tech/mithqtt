@@ -108,4 +108,8 @@ public class PhotoVoltaicAuthenticator implements Authenticator {
     public String oauth(String credentials) {
         return mongoStorage.getUserByToken(credentials);
     }
+
+    public String getClientInternalIp(String clientId){
+        return mongoStorage.getClientInternalIp(clientId);
+    }
 }

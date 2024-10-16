@@ -48,6 +48,11 @@ public class HazelcastHttpCommunicator implements HttpCommunicator {
     }
 
     @Override
+    public void sendToBrokerInternal(String internalIp, InternalMessage message) {
+
+    }
+
+    @Override
     public void sendToApplication(InternalMessage message) {
         Ringbuffer<InternalMessage> ring = this.hazelcast.getRingbuffer(APPLICATION_TOPIC);
         sendMessage(ring, message);

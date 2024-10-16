@@ -228,6 +228,21 @@ public class MqttPublishResource extends AbstractResource {
      */
     public Boolean publishMessage(String clientId,byte protocol,boolean dup,int qos,String topicName, int packetId,
                                   byte[] payload){
+
+        String internalIp = this.authenticator.getClientInternalIp(clientId);
+        if (StringUtils.isNotBlank(internalIp)) {
+            logger.info(clientId+" sendToBrokerInternal");
+            InternalMessage<Publish> internalMessage = new InternalMessage<>();
+            internalMessage.setUserName(clientId);
+            internalMessage.setClientId(clientId);
+            internalMessage.setMessageType(MqttMessageType.PUBLISH);
+            internalMessage.setQos(MqttQoS.valueOf(qos));
+            Publish publish = new Publish(topicName, packetId, payload, System.currentTimeMillis());
+            internalMessage.setPayload(publish);
+            this.communicator.sendToBrokerInternal(internalIp, internalMessage);
+            return true;
+        }
+
         String userName = clientId;
         MqttVersion version = MqttVersion.fromProtocolLevel(protocol);
 

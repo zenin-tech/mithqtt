@@ -63,4 +63,6 @@ public interface Authenticator {
      * @return User Name
      */
     String oauth(String credentials);
+
+    String getClientInternalIp(String clientId);
 }

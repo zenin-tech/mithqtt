@@ -77,4 +77,9 @@ public class DummyAuthenticator implements Authenticator {
     public String oauth(String credentials) {
         return credentials;
     }
+
+    @Override
+    public String getClientInternalIp(String clientId) {
+        return null;
+    }
 }

@@ -8,4 +8,6 @@ dependencies {
 
     // rabbitmq
     compile 'com.rabbitmq:amqp-client:3.6.0'
+
+    compile 'com.alibaba.fastjson2:fastjson2:2.0.23'
 }
